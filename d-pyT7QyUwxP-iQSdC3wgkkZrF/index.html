@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<meta name="robots" content="noindex, nofollow" />
+<title>Personify Status</title>
+<style>
+  :root {
+    --background: 165 20% 98%;
+    --foreground: 165 40% 15%;
+    --border: 165 15% 90%;
+    --card: 0 0% 100%;
+    --primary: 175 40% 35%;
+    --primary-foreground: 0 0% 100%;
+    --muted: 165 15% 90%;
+    --muted-foreground: 165 20% 45%;
+    --destructive: 0 60% 50%;
+    --radius: 8px;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: hsl(var(--background));
+    color: hsl(var(--foreground));
+    font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    padding-bottom: 5rem;
+  }
+  .header {
+    position: sticky; top: 0; z-index: 10;
+    background: hsl(var(--background) / 0.85);
+    backdrop-filter: blur(8px);
+    border-bottom: 1px solid hsl(var(--border) / 0.5);
+  }
+  .header-inner {
+    max-width: 64rem; margin: 0 auto; padding: 0 1.5rem; height: 4rem;
+    display: flex; align-items: center; justify-content: space-between; gap: 1rem;
+  }
+  .brand { display: flex; align-items: center; gap: 0.75rem; }
+  .brand .logo {
+    width: 2rem; height: 2rem; border-radius: var(--radius);
+    background: hsl(var(--primary) / 0.18);
+    display: flex; align-items: center; justify-content: center;
+    color: hsl(var(--primary)); font-size: 1rem;
+  }
+  .brand h1 { font-size: 1.125rem; font-weight: 600; letter-spacing: -0.01em; margin: 0; }
+  .toggle {
+    background: hsl(var(--card)); border: 1px solid hsl(var(--border) / 0.5);
+    border-radius: var(--radius); padding: 0.25rem; display: flex; gap: 0.125rem;
+  }
+  .toggle button {
+    border: 0; background: transparent; cursor: pointer;
+    padding: 0.375rem 0.75rem; font-size: 0.75rem; font-weight: 500;
+    border-radius: calc(var(--radius) - 2px);
+    color: hsl(var(--muted-foreground)); transition: all 0.15s;
+  }
+  .toggle button.active {
+    background: hsl(var(--primary)); color: hsl(var(--primary-foreground));
+    box-shadow: 0 1px 2px hsl(var(--border) / 0.4);
+  }
+  main { max-width: 64rem; margin: 0 auto; padding: 2rem 1.5rem; }
+  section { margin-bottom: 3rem; }
+  .section-title {
+    font-size: 0.75rem; font-weight: 500; color: hsl(var(--muted-foreground));
+    text-transform: uppercase; letter-spacing: 0.08em; margin: 0 0 1rem;
+  }
+  .card {
+    background: hsl(var(--card)); border: 1px solid hsl(var(--border) / 0.5);
+    border-radius: 1rem; box-shadow: 0 1px 2px hsl(var(--border) / 0.3);
+  }
+  .goal {
+    padding: 1.5rem 2rem; display: flex; flex-wrap: wrap; align-items: center; gap: 2rem;
+  }
+  .goal .value { flex: 1; min-width: 12rem; }
+  .goal .number { font-size: 2.25rem; font-weight: 300; letter-spacing: -0.02em; }
+  .goal .number .sub { color: hsl(var(--muted-foreground)); font-size: 1.25rem; margin-left: 0.5rem; }
+  .goal .label { color: hsl(var(--muted-foreground)); font-weight: 500; margin-top: 0.25rem; }
+  .bar { width: 100%; max-width: 16rem; height: 1rem; background: hsl(var(--muted) / 0.6);
+    border-radius: 999px; overflow: hidden; }
+  .bar > div { height: 100%; background: hsl(var(--primary)); border-radius: 999px;
+    transition: width 0.8s ease; }
+  .goal-empty { padding: 2rem; text-align: center; color: hsl(var(--muted-foreground)); font-weight: 500; }
+  .stats { display: grid; grid-template-columns: repeat(2, 1fr); gap: 1rem; }
+  .stat { background: hsl(var(--card)); border: 1px solid hsl(var(--border) / 0.5);
+    border-radius: 1rem; padding: 1.5rem; box-shadow: 0 1px 2px hsl(var(--border) / 0.3); }
+  .stat .k { font-size: 0.875rem; font-weight: 500; color: hsl(var(--muted-foreground)); }
+  .stat .v { font-size: 1.875rem; font-weight: 300; letter-spacing: -0.02em; margin-top: 1rem; }
+  .stat .v.primary { color: hsl(var(--primary)); }
+  .stat .v.bad { color: hsl(var(--destructive)); }
+  .history-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 1.5rem; }
+  .history-head .range-start { font-size: 0.875rem; color: hsl(var(--muted-foreground));
+    font-family: ui-monospace, SFMono-Regular, Menlo, monospace; }
+  table { width: 100%; border-collapse: collapse; }
+  thead th {
+    text-align: right; font-size: 0.75rem; font-weight: 500; color: hsl(var(--muted-foreground));
+    text-transform: uppercase; letter-spacing: 0.08em; padding: 1rem;
+    border-bottom: 1px solid hsl(var(--border) / 0.5);
+  }
+  thead th:first-child { text-align: left; }
+  thead th:last-child { text-align: center; }
+  tbody td { padding: 1rem; font-size: 0.875rem; text-align: right;
+    font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+    border-bottom: 1px solid hsl(var(--border) / 0.25); }
+  tbody td:first-child { text-align: left; }
+  tbody td.done { color: hsl(var(--primary)); }
+  tbody td.skip { color: hsl(var(--muted-foreground)); }
+  tbody td.fail { color: hsl(var(--destructive)); }
+  tbody td.status { text-align: center; }
+  .dot { display: inline-block; width: 0.5rem; height: 0.5rem; border-radius: 999px; }
+  .dot.ok { background: hsl(var(--primary)); }
+  .dot.no { background: hsl(var(--destructive)); }
+  .empty { padding: 3rem; text-align: center; color: hsl(var(--muted-foreground)); font-weight: 500; }
+  .footer { max-width: 64rem; margin: 0 auto; padding: 0 1.5rem;
+    font-size: 0.75rem; color: hsl(var(--muted-foreground)); }
+  @media (min-width: 768px) { .stats { grid-template-columns: repeat(4, 1fr); } }
+</style>
+</head>
+<body>
+  <header class="header">
+    <div class="header-inner">
+      <div class="brand">
+        <div class="logo">&#9678;</div>
+        <h1>Personify Status</h1>
+      </div>
+      <div class="toggle" id="toggle"></div>
+    </div>
+  </header>
+  <main id="app"></main>
+  <footer class="footer">Snapshot generated 2026-06-09 12:35 UTC &middot; refreshes daily</footer>
+
+<script>
+  const DATA = {"7":{"goal":{"available":true,"label":"Rewards 3870 Points to next reward!","current":2130,"target":20000,"percent":11,"capturedAt":"2026-06-08T16:42:18.731Z"},"days":[{"date":"2026-06-03","runs":0,"done":0,"skipped":0,"failed":0,"ok":false},{"date":"2026-06-04","runs":0,"done":0,"skipped":0,"failed":0,"ok":false},{"date":"2026-06-05","runs":0,"done":0,"skipped":0,"failed":0,"ok":false},{"date":"2026-06-06","runs":0,"done":0,"skipped":0,"failed":0,"ok":false},{"date":"2026-06-07","runs":0,"done":0,"skipped":0,"failed":0,"ok":false},{"date":"2026-06-08","runs":3,"done":0,"skipped":3,"failed":0,"ok":true},{"date":"2026-06-09","runs":0,"done":0,"skipped":0,"failed":0,"ok":false}],"totals":{"runs":3,"done":0,"skipped":3,"failed":0},"lastRunAt":"2026-06-08T16:43:05.170Z","range":"7","rangeLabel":"Last 7 days","rangeStart":"2026-06-03"},"30":{"goal":{"available":true,"label":"Rewards 3870 Points to next reward!","current":2130,"target":20000,"percent":11,"capturedAt":"2026-06-08T16:42:18.731Z"},"days":[{"date":"2026-05-11","runs":0,"done":0,"skipped":0,"failed":0,"ok":false},{"date":"2026-05-12","runs":0,"done":0,"skipped":0,"failed":0,"ok":false},{"date":"2026-05-13","runs":0,"done":0,"skipped":0,"failed":0,"ok":false},{"date":"2026-05-14","runs":0,"done":0,"skipped":0,"failed":0,"ok":false},{"date":"2026-05-15","runs":0,"done":0,"skipped":0,"failed":0,"ok":false},{"date":"2026-05-16","runs":0,"done":0,"skipped":0,"failed":0,"ok":false},{"date":"2026-05-17","runs":0,"done":0,"skipped":0,"failed":0,"ok":false},{"date":"2026-05-18","runs":0,"done":0,"skipped":0,"failed":0,"ok":false},{"date":"2026-05-19","runs":0,"done":0,"skipped":0,"failed":0,"ok":false},{"date":"2026-05-20","runs":0,"done":0,"skipped":0,"failed":0,"ok":false},{"date":"2026-05-21","runs":0,"done":0,"skipped":0,"failed":0,"ok":false},{"date":"2026-05-22","runs":0,"done":0,"skipped":0,"failed":0,"ok":false},{"date":"2026-05-23","runs":0,"done":0,"skipped":0,"failed":0,"ok":false},{"date":"2026-05-24","runs":0,"done":0,"skipped":0,"failed":0,"ok":false},{"date":"2026-05-25","runs":0,"done":0,"skipped":0,"failed":0,"ok":false},{"date":"2026-05-26","runs":0,"done":0,"skipped":0,"failed":0,"ok":false},{"date":"2026-05-27","runs":0,"done":0,"skipped":0,"failed":0,"ok":false},{"date":"2026-05-28","runs":0,"done":0,"skipped":0,"failed":0,"ok":false},{"date":"2026-05-29","runs":0,"done":0,"skipped":0,"failed":0,"ok":false},{"date":"2026-05-30","runs":0,"done":0,"skipped":0,"failed":0,"ok":false},{"date":"2026-05-31","runs":0,"done":0,"skipped":0,"failed":0,"ok":false},{"date":"2026-06-01","runs":0,"done":0,"skipped":0,"failed":0,"ok":false},{"date":"2026-06-02","runs":0,"done":0,"skipped":0,"failed":0,"ok":false},{"date":"2026-06-03","runs":0,"done":0,"skipped":0,"failed":0,"ok":false},{"date":"2026-06-04","runs":0,"done":0,"skipped":0,"failed":0,"ok":false},{"date":"2026-06-05","runs":0,"done":0,"skipped":0,"failed":0,"ok":false},{"date":"2026-06-06","runs":0,"done":0,"skipped":0,"failed":0,"ok":false},{"date":"2026-06-07","runs":0,"done":0,"skipped":0,"failed":0,"ok":false},{"date":"2026-06-08","runs":3,"done":0,"skipped":3,"failed":0,"ok":true},{"date":"2026-06-09","runs":0,"done":0,"skipped":0,"failed":0,"ok":false}],"totals":{"runs":3,"done":0,"skipped":3,"failed":0},"lastRunAt":"2026-06-08T16:43:05.170Z","range":"30","rangeLabel":"Last 30 days","rangeStart":"2026-05-11"},"90":{"goal":{"available":true,"label":"Rewards 3870 Points to next reward!","current":2130,"target":20000,"percent":11,"capturedAt":"2026-06-08T16:42:18.731Z"},"days":[{"date":"2026-03-12","runs":0,"done":0,"skipped":0,"failed":0,"ok":false},{"date":"2026-03-13","runs":0,"done":0,"skipped":0,"failed":0,"ok":false},{"date":"2026-03-14","runs":0,"done":0,"skipped":0,"failed":0,"ok":false},{"date":"2026-03-15","runs":0,"done":0,"skipped":0,"failed":0,"ok":false},{"date":"2026-03-16","runs":0,"done":0,"skipped":0,"failed":0,"ok":false},{"date":"2026-03-17","runs":0,"done":0,"skipped":0,"failed":0,"ok":false},{"date":"2026-03-18","runs":0,"done":0,"skipped":0,"failed":0,"ok":false},{"date":"2026-03-19","runs":0,"done":0,"skipped":0,"failed":0,"ok":false},{"date":"2026-03-20","runs":0,"done":0,"skipped":0,"failed":0,"ok":false},{"date":"2026-03-21","runs":0,"done":0,"skipped":0,"failed":0,"ok":false},{"date":"2026-03-22","runs":0,"done":0,"skipped":0,"failed":0,"ok":false},{"date":"2026-03-23","runs":0,"done":0,"skipped":0,"failed":0,"ok":false},{"date":"2026-03-24","runs":0,"done":0,"skipped":0,"failed":0,"ok":false},{"date":"2026-03-25","runs":0,"done":0,"skipped":0,"failed":0,"ok":false},{"date":"2026-03-26","runs":0,"done":0,"skipped":0,"failed":0,"ok":false},{"date":"2026-03-27","runs":0,"done":0,"skipped":0,"failed":0,"ok":false},{"date":"2026-03-28","runs":0,"done":0,"skipped":0,"failed":0,"ok":false},{"date":"2026-03-29","runs":0,"done":0,"skipped":0,"failed":0,"ok":false},{"date":"2026-03-30","runs":0,"done":0,"skipped":0,"failed":0,"ok":false},{"date":"2026-03-31","runs":0,"done":0,"skipped":0,"failed":0,"ok":false},{"date":"2026-04-01","runs":0,"done":0,"skipped":0,"failed":0,"ok":false},{"date":"2026-04-02","runs":0,"done":0,"skipped":0,"failed":0,"ok":false},{"date":"2026-04-03","runs":0,"done":0,"skipped":0,"failed":0,"ok":false},{"date":"2026-04-04","runs":0,"done":0,"skipped":0,"failed":0,"ok":false},{"date":"2026-04-05","runs":0,"done":0,"skipped":0,"failed":0,"ok":false},{"date":"2026-04-06","runs":0,"done":0,"skipped":0,"failed":0,"ok":false},{"date":"2026-04-07","runs":0,"done":0,"skipped":0,"failed":0,"ok":false},{"date":"2026-04-08","runs":0,"done":0,"skipped":0,"failed":0,"ok":false},{"date":"2026-04-09","runs":0,"done":0,"skipped":0,"failed":0,"ok":false},{"date":"2026-04-10","runs":0,"done":0,"skipped":0,"failed":0,"ok":false},{"date":"2026-04-11","runs":0,"done":0,"skipped":0,"failed":0,"ok":false},{"date":"2026-04-12","runs":0,"done":0,"skipped":0,"failed":0,"ok":false},{"date":"2026-04-13","runs":0,"done":0,"skipped":0,"failed":0,"ok":false},{"date":"2026-04-14","runs":0,"done":0,"skipped":0,"failed":0,"ok":false},{"date":"2026-04-15","runs":0,"done":0,"skipped":0,"failed":0,"ok":false},{"date":"2026-04-16","runs":0,"done":0,"skipped":0,"failed":0,"ok":false},{"date":"2026-04-17","runs":0,"done":0,"skipped":0,"failed":0,"ok":false},{"date":"2026-04-18","runs":0,"done":0,"skipped":0,"failed":0,"ok":false},{"date":"2026-04-19","runs":0,"done":0,"skipped":0,"failed":0,"ok":false},{"date":"2026-04-20","runs":0,"done":0,"skipped":0,"failed":0,"ok":false},{"date":"2026-04-21","runs":0,"done":0,"skipped":0,"failed":0,"ok":false},{"date":"2026-04-22","runs":0,"done":0,"skipped":0,"failed":0,"ok":false},{"date":"2026-04-23","runs":0,"done":0,"skipped":0,"failed":0,"ok":false},{"date":"2026-04-24","runs":0,"done":0,"skipped":0,"failed":0,"ok":false},{"date":"2026-04-25","runs":0,"done":0,"skipped":0,"failed":0,"ok":false},{"date":"2026-04-26","runs":0,"done":0,"skipped":0,"failed":0,"ok":false},{"date":"2026-04-27","runs":0,"done":0,"skipped":0,"failed":0,"ok":false},{"date":"2026-04-28","runs":0,"done":0,"skipped":0,"failed":0,"ok":false},{"date":"2026-04-29","runs":0,"done":0,"skipped":0,"failed":0,"ok":false},{"date":"2026-04-30","runs":0,"done":0,"skipped":0,"failed":0,"ok":false},{"date":"2026-05-01","runs":0,"done":0,"skipped":0,"failed":0,"ok":false},{"date":"2026-05-02","runs":0,"done":0,"skipped":0,"failed":0,"ok":false},{"date":"2026-05-03","runs":0,"done":0,"skipped":0,"failed":0,"ok":false},{"date":"2026-05-04","runs":0,"done":0,"skipped":0,"failed":0,"ok":false},{"date":"2026-05-05","runs":0,"done":0,"skipped":0,"failed":0,"ok":false},{"date":"2026-05-06","runs":0,"done":0,"skipped":0,"failed":0,"ok":false},{"date":"2026-05-07","runs":0,"done":0,"skipped":0,"failed":0,"ok":false},{"date":"2026-05-08","runs":0,"done":0,"skipped":0,"failed":0,"ok":false},{"date":"2026-05-09","runs":0,"done":0,"skipped":0,"failed":0,"ok":false},{"date":"2026-05-10","runs":0,"done":0,"skipped":0,"failed":0,"ok":false},{"date":"2026-05-11","runs":0,"done":0,"skipped":0,"failed":0,"ok":false},{"date":"2026-05-12","runs":0,"done":0,"skipped":0,"failed":0,"ok":false},{"date":"2026-05-13","runs":0,"done":0,"skipped":0,"failed":0,"ok":false},{"date":"2026-05-14","runs":0,"done":0,"skipped":0,"failed":0,"ok":false},{"date":"2026-05-15","runs":0,"done":0,"skipped":0,"failed":0,"ok":false},{"date":"2026-05-16","runs":0,"done":0,"skipped":0,"failed":0,"ok":false},{"date":"2026-05-17","runs":0,"done":0,"skipped":0,"failed":0,"ok":false},{"date":"2026-05-18","runs":0,"done":0,"skipped":0,"failed":0,"ok":false},{"date":"2026-05-19","runs":0,"done":0,"skipped":0,"failed":0,"ok":false},{"date":"2026-05-20","runs":0,"done":0,"skipped":0,"failed":0,"ok":false},{"date":"2026-05-21","runs":0,"done":0,"skipped":0,"failed":0,"ok":false},{"date":"2026-05-22","runs":0,"done":0,"skipped":0,"failed":0,"ok":false},{"date":"2026-05-23","runs":0,"done":0,"skipped":0,"failed":0,"ok":false},{"date":"2026-05-24","runs":0,"done":0,"skipped":0,"failed":0,"ok":false},{"date":"2026-05-25","runs":0,"done":0,"skipped":0,"failed":0,"ok":false},{"date":"2026-05-26","runs":0,"done":0,"skipped":0,"failed":0,"ok":false},{"date":"2026-05-27","runs":0,"done":0,"skipped":0,"failed":0,"ok":false},{"date":"2026-05-28","runs":0,"done":0,"skipped":0,"failed":0,"ok":false},{"date":"2026-05-29","runs":0,"done":0,"skipped":0,"failed":0,"ok":false},{"date":"2026-05-30","runs":0,"done":0,"skipped":0,"failed":0,"ok":false},{"date":"2026-05-31","runs":0,"done":0,"skipped":0,"failed":0,"ok":false},{"date":"2026-06-01","runs":0,"done":0,"skipped":0,"failed":0,"ok":false},{"date":"2026-06-02","runs":0,"done":0,"skipped":0,"failed":0,"ok":false},{"date":"2026-06-03","runs":0,"done":0,"skipped":0,"failed":0,"ok":false},{"date":"2026-06-04","runs":0,"done":0,"skipped":0,"failed":0,"ok":false},{"date":"2026-06-05","runs":0,"done":0,"skipped":0,"failed":0,"ok":false},{"date":"2026-06-06","runs":0,"done":0,"skipped":0,"failed":0,"ok":false},{"date":"2026-06-07","runs":0,"done":0,"skipped":0,"failed":0,"ok":false},{"date":"2026-06-08","runs":3,"done":0,"skipped":3,"failed":0,"ok":true},{"date":"2026-06-09","runs":0,"done":0,"skipped":0,"failed":0,"ok":false}],"totals":{"runs":3,"done":0,"skipped":3,"failed":0},"lastRunAt":"2026-06-08T16:43:05.170Z","range":"90","rangeLabel":"Last 90 days","rangeStart":"2026-03-12"},"quarter":{"goal":{"available":true,"label":"Rewards 3870 Points to next reward!","current":2130,"target":20000,"percent":11,"capturedAt":"2026-06-08T16:42:18.731Z"},"days":[{"date":"2026-04-01","runs":0,"done":0,"skipped":0,"failed":0,"ok":false},{"date":"2026-04-02","runs":0,"done":0,"skipped":0,"failed":0,"ok":false},{"date":"2026-04-03","runs":0,"done":0,"skipped":0,"failed":0,"ok":false},{"date":"2026-04-04","runs":0,"done":0,"skipped":0,"failed":0,"ok":false},{"date":"2026-04-05","runs":0,"done":0,"skipped":0,"failed":0,"ok":false},{"date":"2026-04-06","runs":0,"done":0,"skipped":0,"failed":0,"ok":false},{"date":"2026-04-07","runs":0,"done":0,"skipped":0,"failed":0,"ok":false},{"date":"2026-04-08","runs":0,"done":0,"skipped":0,"failed":0,"ok":false},{"date":"2026-04-09","runs":0,"done":0,"skipped":0,"failed":0,"ok":false},{"date":"2026-04-10","runs":0,"done":0,"skipped":0,"failed":0,"ok":false},{"date":"2026-04-11","runs":0,"done":0,"skipped":0,"failed":0,"ok":false},{"date":"2026-04-12","runs":0,"done":0,"skipped":0,"failed":0,"ok":false},{"date":"2026-04-13","runs":0,"done":0,"skipped":0,"failed":0,"ok":false},{"date":"2026-04-14","runs":0,"done":0,"skipped":0,"failed":0,"ok":false},{"date":"2026-04-15","runs":0,"done":0,"skipped":0,"failed":0,"ok":false},{"date":"2026-04-16","runs":0,"done":0,"skipped":0,"failed":0,"ok":false},{"date":"2026-04-17","runs":0,"done":0,"skipped":0,"failed":0,"ok":false},{"date":"2026-04-18","runs":0,"done":0,"skipped":0,"failed":0,"ok":false},{"date":"2026-04-19","runs":0,"done":0,"skipped":0,"failed":0,"ok":false},{"date":"2026-04-20","runs":0,"done":0,"skipped":0,"failed":0,"ok":false},{"date":"2026-04-21","runs":0,"done":0,"skipped":0,"failed":0,"ok":false},{"date":"2026-04-22","runs":0,"done":0,"skipped":0,"failed":0,"ok":false},{"date":"2026-04-23","runs":0,"done":0,"skipped":0,"failed":0,"ok":false},{"date":"2026-04-24","runs":0,"done":0,"skipped":0,"failed":0,"ok":false},{"date":"2026-04-25","runs":0,"done":0,"skipped":0,"failed":0,"ok":false},{"date":"2026-04-26","runs":0,"done":0,"skipped":0,"failed":0,"ok":false},{"date":"2026-04-27","runs":0,"done":0,"skipped":0,"failed":0,"ok":false},{"date":"2026-04-28","runs":0,"done":0,"skipped":0,"failed":0,"ok":false},{"date":"2026-04-29","runs":0,"done":0,"skipped":0,"failed":0,"ok":false},{"date":"2026-04-30","runs":0,"done":0,"skipped":0,"failed":0,"ok":false},{"date":"2026-05-01","runs":0,"done":0,"skipped":0,"failed":0,"ok":false},{"date":"2026-05-02","runs":0,"done":0,"skipped":0,"failed":0,"ok":false},{"date":"2026-05-03","runs":0,"done":0,"skipped":0,"failed":0,"ok":false},{"date":"2026-05-04","runs":0,"done":0,"skipped":0,"failed":0,"ok":false},{"date":"2026-05-05","runs":0,"done":0,"skipped":0,"failed":0,"ok":false},{"date":"2026-05-06","runs":0,"done":0,"skipped":0,"failed":0,"ok":false},{"date":"2026-05-07","runs":0,"done":0,"skipped":0,"failed":0,"ok":false},{"date":"2026-05-08","runs":0,"done":0,"skipped":0,"failed":0,"ok":false},{"date":"2026-05-09","runs":0,"done":0,"skipped":0,"failed":0,"ok":false},{"date":"2026-05-10","runs":0,"done":0,"skipped":0,"failed":0,"ok":false},{"date":"2026-05-11","runs":0,"done":0,"skipped":0,"failed":0,"ok":false},{"date":"2026-05-12","runs":0,"done":0,"skipped":0,"failed":0,"ok":false},{"date":"2026-05-13","runs":0,"done":0,"skipped":0,"failed":0,"ok":false},{"date":"2026-05-14","runs":0,"done":0,"skipped":0,"failed":0,"ok":false},{"date":"2026-05-15","runs":0,"done":0,"skipped":0,"failed":0,"ok":false},{"date":"2026-05-16","runs":0,"done":0,"skipped":0,"failed":0,"ok":false},{"date":"2026-05-17","runs":0,"done":0,"skipped":0,"failed":0,"ok":false},{"date":"2026-05-18","runs":0,"done":0,"skipped":0,"failed":0,"ok":false},{"date":"2026-05-19","runs":0,"done":0,"skipped":0,"failed":0,"ok":false},{"date":"2026-05-20","runs":0,"done":0,"skipped":0,"failed":0,"ok":false},{"date":"2026-05-21","runs":0,"done":0,"skipped":0,"failed":0,"ok":false},{"date":"2026-05-22","runs":0,"done":0,"skipped":0,"failed":0,"ok":false},{"date":"2026-05-23","runs":0,"done":0,"skipped":0,"failed":0,"ok":false},{"date":"2026-05-24","runs":0,"done":0,"skipped":0,"failed":0,"ok":false},{"date":"2026-05-25","runs":0,"done":0,"skipped":0,"failed":0,"ok":false},{"date":"2026-05-26","runs":0,"done":0,"skipped":0,"failed":0,"ok":false},{"date":"2026-05-27","runs":0,"done":0,"skipped":0,"failed":0,"ok":false},{"date":"2026-05-28","runs":0,"done":0,"skipped":0,"failed":0,"ok":false},{"date":"2026-05-29","runs":0,"done":0,"skipped":0,"failed":0,"ok":false},{"date":"2026-05-30","runs":0,"done":0,"skipped":0,"failed":0,"ok":false},{"date":"2026-05-31","runs":0,"done":0,"skipped":0,"failed":0,"ok":false},{"date":"2026-06-01","runs":0,"done":0,"skipped":0,"failed":0,"ok":false},{"date":"2026-06-02","runs":0,"done":0,"skipped":0,"failed":0,"ok":false},{"date":"2026-06-03","runs":0,"done":0,"skipped":0,"failed":0,"ok":false},{"date":"2026-06-04","runs":0,"done":0,"skipped":0,"failed":0,"ok":false},{"date":"2026-06-05","runs":0,"done":0,"skipped":0,"failed":0,"ok":false},{"date":"2026-06-06","runs":0,"done":0,"skipped":0,"failed":0,"ok":false},{"date":"2026-06-07","runs":0,"done":0,"skipped":0,"failed":0,"ok":false},{"date":"2026-06-08","runs":3,"done":0,"skipped":3,"failed":0,"ok":true},{"date":"2026-06-09","runs":0,"done":0,"skipped":0,"failed":0,"ok":false}],"totals":{"runs":3,"done":0,"skipped":3,"failed":0},"lastRunAt":"2026-06-08T16:43:05.170Z","range":"quarter","rangeLabel":"Quarter to date (Q2 2026)","rangeStart":"2026-04-01"}};
+  const RANGES = [{"value":"7","label":"7D"},{"value":"30","label":"30D"},{"value":"90","label":"90D"},{"value":"quarter","label":"Quarter"}];
+  let current = "7";
+
+  const MONTHS = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+  function fmtDate(iso) {
+    const d = new Date(iso + "T00:00:00Z");
+    return MONTHS[d.getUTCMonth()] + " " + d.getUTCDate();
+  }
+  function num(n) { return (n == null ? 0 : n).toLocaleString(); }
+  function esc(s) {
+    return String(s == null ? "" : s).replace(/[&<>"']/g, function (c) {
+      return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c];
+    });
+  }
+
+  function renderGoal(g) {
+    if (!g.available) {
+      return '<div class="card goal-empty">Goal progress is currently unavailable</div>';
+    }
+    const pct = Math.min(100, g.percent == null ? 0 : g.percent);
+    return '<div class="card goal">' +
+      '<div class="value"><div class="number">' + num(g.current) +
+        '<span class="sub">/ ' + num(g.target) + '</span></div>' +
+        '<div class="label">' + esc(g.label || "Reward points") + '</div></div>' +
+      '<div class="bar"><div style="width:' + pct + '%"></div></div>' +
+    '</div>';
+  }
+
+  function renderStats(t) {
+    return '<div class="stats">' +
+      '<div class="stat"><div class="k">Total Runs</div><div class="v">' + num(t.runs) + '</div></div>' +
+      '<div class="stat"><div class="k">Completed</div><div class="v primary">' + num(t.done) + '</div></div>' +
+      '<div class="stat"><div class="k">Skipped</div><div class="v">' + num(t.skipped) + '</div></div>' +
+      '<div class="stat"><div class="k">Failed</div><div class="v bad">' + num(t.failed) + '</div></div>' +
+    '</div>';
+  }
+
+  function renderHistory(s) {
+    if (!s.days.length) {
+      return '<div class="card empty">No bot runs recorded in this timeframe.</div>';
+    }
+    let rows = "";
+    for (const d of s.days) {
+      rows += '<tr>' +
+        '<td>' + fmtDate(d.date) + '</td>' +
+        '<td>' + d.runs + '</td>' +
+        '<td class="done">' + (d.done > 0 ? d.done : "-") + '</td>' +
+        '<td class="skip">' + (d.skipped > 0 ? d.skipped : "-") + '</td>' +
+        '<td class="fail">' + (d.failed > 0 ? d.failed : "-") + '</td>' +
+        '<td class="status"><span class="dot ' + (d.ok ? "ok" : "no") + '"></span></td>' +
+      '</tr>';
+    }
+    return '<div class="card" style="overflow:hidden">' +
+      '<table><thead><tr><th>Date</th><th>Runs</th><th>Done</th><th>Skip</th><th>Fail</th>' +
+      '<th>Status</th></tr></thead><tbody>' + rows + '</tbody></table></div>';
+  }
+
+  function render() {
+    const s = DATA[current];
+    document.getElementById("app").innerHTML =
+      '<section><h2 class="section-title">Quarterly Goal</h2>' + renderGoal(s.goal) + '</section>' +
+      '<section>' + renderStats(s.totals) + '</section>' +
+      '<section><div class="history-head"><h2 class="section-title">Run History</h2>' +
+        '<span class="range-start">' + esc(s.rangeStart) + ' to Now</span></div>' +
+        renderHistory(s) + '</section>';
+    for (const b of document.querySelectorAll("#toggle button")) {
+      b.classList.toggle("active", b.dataset.range === current);
+    }
+  }
+
+  function buildToggle() {
+    const wrap = document.getElementById("toggle");
+    for (const r of RANGES) {
+      const b = document.createElement("button");
+      b.textContent = r.label;
+      b.dataset.range = r.value;
+      b.addEventListener("click", function () { current = r.value; render(); });
+      wrap.appendChild(b);
+    }
+  }
+
+  buildToggle();
+  render();
+</script>
+</body>
+</html>
